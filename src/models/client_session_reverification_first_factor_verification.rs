@@ -17,6 +17,9 @@ pub enum ClientSessionReverificationFirstFactorVerification {
     StubsVerificationPassword(Box<models::StubsVerificationPassword>),
     StubsVerificationOtp(Box<models::StubsVerificationOtp>),
     StubsVerificationPasskey(Box<models::StubsVerificationPasskey>),
+    /// scriptoria patch: 未知の shape (新 verification strategy 等) を
+    /// graceful に受ける forward-compat フォールバック。
+    Unknown(serde_json::Value),
 }
 
 impl Default for ClientSessionReverificationFirstFactorVerification {
@@ -29,6 +32,9 @@ impl Default for ClientSessionReverificationFirstFactorVerification {
 pub enum Object {
     #[serde(rename = "verification_passkey")]
     VerificationPasskey,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -47,6 +53,9 @@ pub enum Status {
     Failed,
     #[serde(rename = "expired")]
     Expired,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {
@@ -59,6 +68,9 @@ impl Default for Status {
 pub enum Strategy {
     #[serde(rename = "passkey")]
     Passkey,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Strategy {

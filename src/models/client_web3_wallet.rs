@@ -54,6 +54,9 @@ impl ClientWeb3Wallet {
 pub enum Object {
     #[serde(rename = "web3_wallet")]
     Web3Wallet,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {

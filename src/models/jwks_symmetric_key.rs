@@ -53,6 +53,9 @@ impl JwksSymmetricKey {
 pub enum Kty {
     #[serde(rename = "oct")]
     Oct,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Kty {

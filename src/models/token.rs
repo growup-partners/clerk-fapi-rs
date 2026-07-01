@@ -31,6 +31,9 @@ impl Token {
 pub enum Object {
     #[serde(rename = "token")]
     Token,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {

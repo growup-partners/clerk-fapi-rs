@@ -53,6 +53,9 @@ pub enum CaptchaWidgetType {
     Smart,
     #[serde(rename = "invisible")]
     Invisible,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for CaptchaWidgetType {
@@ -69,6 +72,9 @@ pub enum Mode {
     Restricted,
     #[serde(rename = "waitlist")]
     Waitlist,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Mode {

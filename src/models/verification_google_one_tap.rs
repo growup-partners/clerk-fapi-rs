@@ -62,6 +62,9 @@ impl VerificationGoogleOneTap {
 pub enum Object {
     #[serde(rename = "verification_google_one_tap")]
     VerificationGoogleOneTap,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -76,6 +79,9 @@ pub enum Status {
     Unverified,
     #[serde(rename = "verified")]
     Verified,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {
@@ -88,6 +94,9 @@ impl Default for Status {
 pub enum Strategy {
     #[serde(rename = "google_one_tap")]
     GoogleOneTap,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Strategy {

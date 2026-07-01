@@ -62,6 +62,9 @@ impl StubsVerificationSaml {
 pub enum Object {
     #[serde(rename = "verification_saml")]
     VerificationSaml,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -82,6 +85,9 @@ pub enum Status {
     Expired,
     #[serde(rename = "transferable")]
     Transferable,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {
@@ -94,6 +100,9 @@ impl Default for Status {
 pub enum Strategy {
     #[serde(rename = "saml")]
     Saml,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Strategy {

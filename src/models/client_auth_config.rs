@@ -107,6 +107,9 @@ impl ClientAuthConfig {
 pub enum Object {
     #[serde(rename = "auth_config")]
     AuthConfig,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -123,6 +126,9 @@ pub enum FirstName {
     Off,
     #[serde(rename = "required")]
     Required,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for FirstName {
@@ -139,6 +145,9 @@ pub enum LastName {
     Off,
     #[serde(rename = "required")]
     Required,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for LastName {
@@ -155,6 +164,9 @@ pub enum EmailAddress {
     Off,
     #[serde(rename = "required")]
     Required,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for EmailAddress {
@@ -171,6 +183,9 @@ pub enum PhoneNumber {
     Off,
     #[serde(rename = "required")]
     Required,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for PhoneNumber {
@@ -187,6 +202,9 @@ pub enum Username {
     Off,
     #[serde(rename = "required")]
     Required,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Username {
@@ -203,6 +221,9 @@ pub enum Password {
     Off,
     #[serde(rename = "required")]
     Required,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Password {

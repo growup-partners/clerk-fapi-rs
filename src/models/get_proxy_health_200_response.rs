@@ -16,6 +16,9 @@ use serde::{Deserialize, Serialize};
 pub enum GetProxyHealth200Response {
     GetProxyHealth200ResponseOneOf(Box<models::GetProxyHealth200ResponseOneOf>),
     GetHealth503Response(Box<models::GetHealth503Response>),
+    /// scriptoria patch: 未知の shape (新 verification strategy 等) を
+    /// graceful に受ける forward-compat フォールバック。
+    Unknown(serde_json::Value),
 }
 
 impl Default for GetProxyHealth200Response {
@@ -28,6 +31,9 @@ impl Default for GetProxyHealth200Response {
 pub enum Status {
     #[serde(rename = "unhealthy")]
     Unhealthy,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {

@@ -21,6 +21,9 @@ pub enum ClientEmailAddressVerification {
     StubsVerificationAdmin(Box<models::StubsVerificationAdmin>),
     StubsVerificationFromOauth(Box<models::StubsVerificationFromOauth>),
     StubsVerificationSaml(Box<models::StubsVerificationSaml>),
+    /// scriptoria patch: 未知の shape (新 verification strategy 等) を
+    /// graceful に受ける forward-compat フォールバック。
+    Unknown(serde_json::Value),
 }
 
 impl Default for ClientEmailAddressVerification {
@@ -33,6 +36,9 @@ impl Default for ClientEmailAddressVerification {
 pub enum Object {
     #[serde(rename = "verification_saml")]
     VerificationSaml,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -53,6 +59,9 @@ pub enum Status {
     Expired,
     #[serde(rename = "transferable")]
     Transferable,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {
@@ -65,6 +74,9 @@ impl Default for Status {
 pub enum Strategy {
     #[serde(rename = "saml")]
     Saml,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Strategy {

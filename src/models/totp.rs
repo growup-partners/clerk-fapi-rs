@@ -63,6 +63,9 @@ impl Totp {
 pub enum Object {
     #[serde(rename = "totp")]
     Totp,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {

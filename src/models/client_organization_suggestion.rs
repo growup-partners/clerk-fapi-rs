@@ -55,6 +55,9 @@ impl ClientOrganizationSuggestion {
 pub enum Object {
     #[serde(rename = "organization_suggestion")]
     OrganizationSuggestion,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {

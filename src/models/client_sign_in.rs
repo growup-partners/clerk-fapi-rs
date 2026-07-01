@@ -93,6 +93,9 @@ impl ClientSignIn {
 pub enum Object {
     #[serde(rename = "sign_in_attempt")]
     SignInAttempt,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -113,8 +116,15 @@ pub enum Status {
     NeedsSecondFactor,
     #[serde(rename = "needs_new_password")]
     NeedsNewPassword,
+    /// scriptoria patch: Client Trust(新規デバイス+MFA未設定で email コード検証を要求)。
+    /// upstream 0.2.0 に欠落。email_code 第二要素フローで完了させる。
+    #[serde(rename = "needs_client_trust")]
+    NeedsClientTrust,
     #[serde(rename = "complete")]
     Complete,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {
@@ -135,10 +145,43 @@ pub enum SupportedIdentifiers {
     Web3Wallet,
     #[serde(rename = "passkey")]
     Passkey,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for SupportedIdentifiers {
     fn default() -> SupportedIdentifiers {
         Self::EmailAddress
+    }
+}
+
+// scriptoria patch: サインイン Status の forward-compat フォールバックの回帰テスト。
+// 上流 0.2.0 は needs_client_trust を欠き #[serde(other)] も無いため、Clerk が返す
+// 新ステータスで from_str が hard-fail していた。この patch がそれを解消することを固定する。
+#[cfg(test)]
+mod scriptoria_status_patch_tests {
+    use super::Status;
+
+    fn parse(s: &str) -> Status {
+        serde_json::from_str::<Status>(&format!("\"{s}\"")).expect("Status は未知値でも hard-fail しない")
+    }
+
+    #[test]
+    fn needs_client_trust_deserializes_to_named_variant() {
+        assert_eq!(parse("needs_client_trust"), Status::NeedsClientTrust);
+    }
+
+    #[test]
+    fn unknown_status_falls_back_to_unknown_not_error() {
+        // 将来 Clerk が追加する未知ステータスは Unknown へ倒れ、deserialize は成功する。
+        assert_eq!(parse("some_future_status_2027"), Status::Unknown);
+    }
+
+    #[test]
+    fn known_statuses_still_parse_exactly() {
+        assert_eq!(parse("complete"), Status::Complete);
+        assert_eq!(parse("needs_second_factor"), Status::NeedsSecondFactor);
+        assert_eq!(parse("needs_first_factor"), Status::NeedsFirstFactor);
     }
 }

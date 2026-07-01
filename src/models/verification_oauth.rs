@@ -68,6 +68,9 @@ impl VerificationOauth {
 pub enum Object {
     #[serde(rename = "verification_oauth")]
     VerificationOauth,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -88,6 +91,9 @@ pub enum Status {
     Expired,
     #[serde(rename = "transferable")]
     Transferable,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {

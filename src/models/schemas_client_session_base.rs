@@ -68,6 +68,9 @@ impl SchemasClientSessionBase {
 pub enum Object {
     #[serde(rename = "session")]
     Session,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -90,6 +93,9 @@ pub enum Status {
     Removed,
     #[serde(rename = "abandoned")]
     Abandoned,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {

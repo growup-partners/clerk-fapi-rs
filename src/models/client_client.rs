@@ -95,12 +95,17 @@ impl From<models::schemas_client_client::SchemasClientClient> for ClientClient {
 pub enum Object {
     #[serde(rename = "client")]
     Client,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl From<models::schemas_client_client::Object> for Object {
     fn from(value: models::schemas_client_client::Object) -> Self {
         match value {
             models::schemas_client_client::Object::Client => Object::Client,
+            // scriptoria patch: forward-compat フォールバックの伝播
+            models::schemas_client_client::Object::Unknown => Object::Unknown,
         }
     }
 }

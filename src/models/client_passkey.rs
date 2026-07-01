@@ -61,6 +61,9 @@ impl ClientPasskey {
 pub enum Object {
     #[serde(rename = "passkey")]
     Passkey,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {

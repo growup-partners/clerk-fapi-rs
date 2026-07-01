@@ -67,6 +67,9 @@ impl StubsVerificationWeb3Signature {
 pub enum Object {
     #[serde(rename = "verification_web3")]
     VerificationWeb3,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -85,6 +88,9 @@ pub enum Status {
     Failed,
     #[serde(rename = "expired")]
     Expired,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {
@@ -103,6 +109,9 @@ pub enum Strategy {
     Web3CoinbaseWalletSignature,
     #[serde(rename = "web3_okx_wallet_signature")]
     Web3OkxWalletSignature,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Strategy {

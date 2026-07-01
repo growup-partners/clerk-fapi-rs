@@ -82,6 +82,9 @@ impl ClientPhoneNumber {
 pub enum Object {
     #[serde(rename = "phone_number")]
     PhoneNumber,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {

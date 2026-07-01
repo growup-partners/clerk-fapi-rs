@@ -124,12 +124,17 @@ impl From<models::schemas_client_session::SchemasClientSession> for ClientSessio
 pub enum Object {
     #[serde(rename = "session")]
     Session,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl From<models::schemas_client_session::Object> for Object {
     fn from(object: models::schemas_client_session::Object) -> Self {
         match object {
             models::schemas_client_session::Object::Session => Object::Session,
+            // scriptoria patch: forward-compat フォールバックの伝播
+            models::schemas_client_session::Object::Unknown => Object::Unknown,
         }
     }
 }
@@ -156,6 +161,9 @@ pub enum Status {
     Abandoned,
     #[serde(rename = "pending")]
     Pending,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl From<models::schemas_client_session::Status> for Status {
@@ -167,6 +175,8 @@ impl From<models::schemas_client_session::Status> for Status {
             models::schemas_client_session::Status::Expired => Status::Expired,
             models::schemas_client_session::Status::Removed => Status::Removed,
             models::schemas_client_session::Status::Abandoned => Status::Abandoned,
+            // scriptoria patch: forward-compat フォールバックの伝播
+            models::schemas_client_session::Status::Unknown => Status::Unknown,
         }
     }
 }

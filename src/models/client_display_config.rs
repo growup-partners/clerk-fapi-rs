@@ -230,6 +230,9 @@ impl ClientDisplayConfig {
 pub enum Object {
     #[serde(rename = "display_config")]
     DisplayConfig,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -246,6 +249,9 @@ pub enum InstanceEnvironmentType {
     Development,
     #[serde(rename = "staging")]
     Staging,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for InstanceEnvironmentType {
@@ -260,6 +266,9 @@ pub enum PreferredSignInStrategy {
     Password,
     #[serde(rename = "otp")]
     Otp,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for PreferredSignInStrategy {
@@ -274,6 +283,9 @@ pub enum CaptchaWidgetType {
     Smart,
     #[serde(rename = "invisible")]
     Invisible,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for CaptchaWidgetType {
@@ -286,6 +298,9 @@ impl Default for CaptchaWidgetType {
 pub enum CaptchaProvider {
     #[serde(rename = "turnstile")]
     Turnstile,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for CaptchaProvider {

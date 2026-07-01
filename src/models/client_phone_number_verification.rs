@@ -16,6 +16,9 @@ use serde::{Deserialize, Serialize};
 pub enum ClientPhoneNumberVerification {
     StubsVerificationOtp(Box<models::StubsVerificationOtp>),
     StubsVerificationAdmin(Box<models::StubsVerificationAdmin>),
+    /// scriptoria patch: 未知の shape (新 verification strategy 等) を
+    /// graceful に受ける forward-compat フォールバック。
+    Unknown(serde_json::Value),
 }
 
 impl Default for ClientPhoneNumberVerification {
@@ -28,6 +31,9 @@ impl Default for ClientPhoneNumberVerification {
 pub enum Object {
     #[serde(rename = "verification_admin")]
     VerificationAdmin,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -40,6 +46,9 @@ impl Default for Object {
 pub enum Status {
     #[serde(rename = "verified")]
     Verified,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {
@@ -52,6 +61,9 @@ impl Default for Status {
 pub enum Strategy {
     #[serde(rename = "admin")]
     Admin,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Strategy {

@@ -37,6 +37,9 @@ pub enum Type {
     OauthCustomMock,
     #[serde(rename = "saml")]
     Saml,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Type {

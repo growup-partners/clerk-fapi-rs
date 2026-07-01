@@ -16,6 +16,9 @@ use serde::{Deserialize, Serialize};
 pub enum ClientSamlAccountVerification {
     StubsVerificationSaml(Box<models::StubsVerificationSaml>),
     StubsVerificationTicket(Box<models::StubsVerificationTicket>),
+    /// scriptoria patch: 未知の shape (新 verification strategy 等) を
+    /// graceful に受ける forward-compat フォールバック。
+    Unknown(serde_json::Value),
 }
 
 impl Default for ClientSamlAccountVerification {
@@ -28,6 +31,9 @@ impl Default for ClientSamlAccountVerification {
 pub enum Object {
     #[serde(rename = "verification_ticket")]
     VerificationTicket,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
@@ -44,6 +50,9 @@ pub enum Status {
     Verified,
     #[serde(rename = "expired")]
     Expired,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Status {
@@ -56,6 +65,9 @@ impl Default for Status {
 pub enum Strategy {
     #[serde(rename = "ticket")]
     Ticket,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Strategy {

@@ -67,6 +67,9 @@ impl JwksEd25519PrivateKey {
 pub enum Kty {
     #[serde(rename = "OKP")]
     Okp,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Kty {
@@ -79,6 +82,9 @@ impl Default for Kty {
 pub enum Crv {
     #[serde(rename = "Ed25519")]
     Ed25519,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Crv {

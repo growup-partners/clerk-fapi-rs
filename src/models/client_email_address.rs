@@ -69,6 +69,9 @@ impl ClientEmailAddress {
 pub enum Object {
     #[serde(rename = "email_address")]
     EmailAddress,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {

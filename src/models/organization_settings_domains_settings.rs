@@ -44,6 +44,9 @@ pub enum EnrollmentModes {
     AutomaticInvitation,
     #[serde(rename = "automatic_suggestion")]
     AutomaticSuggestion,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for EnrollmentModes {

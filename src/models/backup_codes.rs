@@ -47,6 +47,9 @@ impl BackupCodes {
 pub enum Object {
     #[serde(rename = "backup_code")]
     BackupCode,
+    /// scriptoria patch: 未知バリアントを graceful に受ける forward-compat フォールバック
+    #[serde(other)]
+    Unknown,
 }
 
 impl Default for Object {
