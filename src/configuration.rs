@@ -12,6 +12,19 @@ use std::future::Future;
 use std::pin::Pin;
 use std::str;
 use std::sync::Arc;
+use std::time::Duration;
+
+/// Default timeout for establishing a TCP connection.
+///
+/// `reqwest` applies no timeout by default, which hangs forever on networks where
+/// the connection is accepted but no HTTP response ever arrives (captive portals,
+/// response-swallowing proxies, VPN blackholes). Callers can tighten this through
+/// [`ClerkFapiConfiguration::with_timeouts`], but forgetting to do so must not leave
+/// the client unbounded.
+pub const DEFAULT_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+
+/// Default timeout for a complete HTTP request.
+pub const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NAME: &str = env!("CARGO_PKG_NAME");
@@ -148,6 +161,8 @@ pub struct ClerkFapiConfiguration {
     pub(crate) store: Arc<dyn Store>,
     pub(crate) store_prefix: String,
     pub(crate) kind: ClientKind,
+    pub(crate) connect_timeout: Duration,
+    pub(crate) timeout: Duration,
 }
 
 impl ClerkFapiConfiguration {
@@ -198,6 +213,8 @@ impl ClerkFapiConfiguration {
             store,
             store_prefix,
             kind,
+            connect_timeout: DEFAULT_CONNECT_TIMEOUT,
+            timeout: DEFAULT_REQUEST_TIMEOUT,
         })
     }
 
@@ -229,6 +246,28 @@ impl ClerkFapiConfiguration {
     /// Returns the store prefix
     pub fn store_prefix(&self) -> &str {
         &self.store_prefix
+    }
+
+    /// Overrides the HTTP timeouts applied to the underlying `reqwest` client.
+    ///
+    /// The defaults are already finite, but callers on latency-sensitive paths
+    /// (for example a desktop application blocking its startup on `load`) may need
+    /// to fail faster than the defaults allow.
+    #[must_use]
+    pub fn with_timeouts(mut self, connect_timeout: Duration, timeout: Duration) -> Self {
+        self.connect_timeout = connect_timeout;
+        self.timeout = timeout;
+        self
+    }
+
+    /// Returns the timeout for establishing a TCP connection
+    pub fn connect_timeout(&self) -> Duration {
+        self.connect_timeout
+    }
+
+    /// Returns the timeout for a complete HTTP request
+    pub fn timeout(&self) -> Duration {
+        self.timeout
     }
 
     /// Helper method to get prefixed key
@@ -309,6 +348,8 @@ impl Default for ClerkFapiConfiguration {
             store: Arc::new(DefaultStore::default()),
             store_prefix: "ClerkFapi:".to_string(),
             kind: ClientKind::NonBrowser,
+            connect_timeout: DEFAULT_CONNECT_TIMEOUT,
+            timeout: DEFAULT_REQUEST_TIMEOUT,
         }
     }
 }
@@ -525,5 +566,24 @@ mod tests {
         // Test that the default store works
         config.set_store_value("test_key", "test_value");
         assert!(config.has_store_value("test_key"));
+    }
+
+    #[test]
+    fn default_timeouts_are_finite() {
+        let config =
+            ClerkFapiConfiguration::new("pk_test_Y2xlcmsuZXhhbXBsZS5jb20k".to_string(), None, None)
+                .unwrap();
+        assert_eq!(config.connect_timeout(), DEFAULT_CONNECT_TIMEOUT);
+        assert_eq!(config.timeout(), DEFAULT_REQUEST_TIMEOUT);
+    }
+
+    #[test]
+    fn with_timeouts_overrides_defaults() {
+        let config =
+            ClerkFapiConfiguration::new("pk_test_Y2xlcmsuZXhhbXBsZS5jb20k".to_string(), None, None)
+                .unwrap()
+                .with_timeouts(Duration::from_secs(1), Duration::from_secs(2));
+        assert_eq!(config.connect_timeout(), Duration::from_secs(1));
+        assert_eq!(config.timeout(), Duration::from_secs(2));
     }
 }
