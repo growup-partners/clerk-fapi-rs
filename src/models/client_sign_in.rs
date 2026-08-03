@@ -164,7 +164,8 @@ mod scriptoria_status_patch_tests {
     use super::Status;
 
     fn parse(s: &str) -> Status {
-        serde_json::from_str::<Status>(&format!("\"{s}\"")).expect("Status は未知値でも hard-fail しない")
+        serde_json::from_str::<Status>(&format!("\"{s}\""))
+            .expect("Status は未知値でも hard-fail しない")
     }
 
     #[test]
