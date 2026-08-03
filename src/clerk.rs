@@ -163,7 +163,6 @@ impl Clerk {
             .await
             .map_err(|e| {
                 error!("Clerk: Failed to load client from API: {e}");
-                println!("Clerk: Failed to load client from API: {e}");
                 ClerkLoadError::FailedToLoadClient
             })?
             .ok_or(ClerkLoadError::FailedToLoadClient)
@@ -182,8 +181,16 @@ impl Clerk {
             self.api_client.set_dev_browser_token_id(dev_browser.id);
         }
 
-        let mut environment = self.load_environment_from_api().await.ok();
-        let mut client = self.load_client_from_api().await.ok();
+        // Fetch both concurrently: neither depends on the other's result, and on a
+        // network that accepts connections but never answers, running them in sequence
+        // costs twice the request timeout before the cache fallback below is reached.
+        let (environment, client) = futures::future::join(
+            self.load_environment_from_api(),
+            self.load_client_from_api(),
+        )
+        .await;
+        let mut environment = environment.ok();
+        let mut client = client.ok();
 
         if environment.is_none() {
             environment = self.load_environment_from_cache();
