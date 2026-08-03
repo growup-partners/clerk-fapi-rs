@@ -35,10 +35,14 @@ impl ClerkFapiClient {
             headers.insert("x-no-origin", HeaderValue::from_static("1"));
         }
 
-        // Create client with default headers
+        // Create client with default headers and bounded timeouts.
+        // Without them reqwest waits indefinitely on a connection that is accepted
+        // but never answered, which strands every caller of this client.
         let http_client = Client::builder()
             .default_headers(headers)
             .user_agent(&config.user_agent)
+            .connect_timeout(config.connect_timeout)
+            .timeout(config.timeout)
             .build()
             .map_err(|e| format!("Failed to create HTTP client: {e}"))?;
 
