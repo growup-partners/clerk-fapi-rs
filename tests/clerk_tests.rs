@@ -1,8 +1,10 @@
 #![recursion_limit = "512"]
 
 use clerk_fapi_rs::clerk::Clerk;
+use clerk_fapi_rs::clerk_fapi::OrganizationMembershipsPage;
 use clerk_fapi_rs::configuration::ClerkFapiConfiguration;
-use mockito::Server;
+use clerk_fapi_rs::models::ClientOrganizationMembership;
+use mockito::{Matcher, Server};
 use serde_json::{self, Value};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -970,4 +972,234 @@ async fn test_parse_client() {
     );
     // this is just smoke test to be able to parse real client data
     let _client: clerk_fapi_rs::models::ClientClient = serde_json::from_value(value1).unwrap();
+}
+
+fn membership_json() -> Value {
+    logged_in_client()["sessions"][0]["user"]["organization_memberships"][0].clone()
+}
+
+async fn loaded_clerk(server: &mut mockito::ServerGuard) -> Clerk {
+    let client_mock = server
+        .mock("GET", "/v1/client?_is_native=1")
+        .with_status(200)
+        .with_body(
+            serde_json::json!({
+                "response": logged_in_client(),
+                "client": null
+            })
+            .to_string(),
+        )
+        .with_header("content-type", "application/json")
+        .create_async()
+        .await;
+    let env_mock = server
+        .mock("GET", "/v1/environment?_is_native=1")
+        .with_status(200)
+        .with_body(get_env_data())
+        .with_header("content-type", "application/json")
+        .create_async()
+        .await;
+
+    let clerk = Clerk::new(
+        ClerkFapiConfiguration::new(
+            "pk_test_Y2xlcmsuZXhhbXBsZS5jb20k".to_string(),
+            Some(server.url()),
+            None,
+        )
+        .unwrap(),
+    );
+    clerk.load().await.unwrap();
+    client_mock.assert_async().await;
+    env_mock.assert_async().await;
+    clerk
+}
+
+/// Mocks `GET /v1/me/organization_memberships` for `limit=100&offset=0`,
+/// requiring `paginated=<paginated>`, answering with `response` wrapped in a client.
+async fn mock_memberships(
+    server: &mut mockito::ServerGuard,
+    paginated: &str,
+    response: Value,
+    client: Value,
+) -> mockito::Mock {
+    server
+        .mock("GET", "/v1/me/organization_memberships")
+        .match_query(Matcher::AllOf(vec![
+            Matcher::UrlEncoded("limit".into(), "100".into()),
+            Matcher::UrlEncoded("offset".into(), "0".into()),
+            Matcher::UrlEncoded("paginated".into(), paginated.into()),
+        ]))
+        .with_status(200)
+        .with_body(serde_json::json!({ "response": response, "client": client }).to_string())
+        .with_header("content-type", "application/json")
+        .create_async()
+        .await
+}
+
+#[tokio::test]
+async fn test_memberships_page_passes_data_and_total_count_through_and_updates_client() {
+    let mut server = Server::new_async().await;
+    let clerk = loaded_clerk(&mut server).await;
+    let mut updated_client = logged_in_client();
+    updated_client["id"] = serde_json::json!("client_updated_by_memberships");
+    let mock = mock_memberships(
+        &mut server,
+        "true",
+        serde_json::json!({ "data": [membership_json()], "total_count": 7 }),
+        updated_client,
+    )
+    .await;
+
+    let page = clerk
+        .get_fapi_client()
+        .get_organization_memberships_page(Some(100), Some(0))
+        .await
+        .unwrap();
+
+    mock.assert_async().await;
+    let ids: Option<Vec<String>> = page
+        .data
+        .as_ref()
+        .map(|data| data.iter().map(|m| m.id.clone()).collect());
+    assert_eq!(ids, Some(vec!["orgmem_123xyz789abc456".to_string()]));
+    assert_eq!(page.total_count, Some(7));
+    assert_eq!(
+        clerk.client().unwrap().id,
+        "client_updated_by_memberships".to_string()
+    );
+}
+
+#[tokio::test]
+async fn test_memberships_page_keeps_missing_data_as_none() {
+    let mut server = Server::new_async().await;
+    let clerk = loaded_clerk(&mut server).await;
+    let mock = mock_memberships(
+        &mut server,
+        "true",
+        serde_json::json!({ "total_count": 3 }),
+        logged_in_client(),
+    )
+    .await;
+
+    let page = clerk
+        .get_fapi_client()
+        .get_organization_memberships_page(Some(100), Some(0))
+        .await
+        .unwrap();
+
+    mock.assert_async().await;
+    assert_eq!(
+        page,
+        OrganizationMembershipsPage {
+            data: None,
+            total_count: Some(3),
+        }
+    );
+}
+
+#[tokio::test]
+async fn test_memberships_page_keeps_null_data_as_none() {
+    let mut server = Server::new_async().await;
+    let clerk = loaded_clerk(&mut server).await;
+    let mock = mock_memberships(
+        &mut server,
+        "true",
+        serde_json::json!({ "data": null, "total_count": 3 }),
+        logged_in_client(),
+    )
+    .await;
+
+    let page = clerk
+        .get_fapi_client()
+        .get_organization_memberships_page(Some(100), Some(0))
+        .await
+        .unwrap();
+
+    mock.assert_async().await;
+    assert_eq!(
+        page,
+        OrganizationMembershipsPage {
+            data: None,
+            total_count: Some(3),
+        }
+    );
+}
+
+#[tokio::test]
+async fn test_memberships_page_keeps_missing_total_count_as_none() {
+    let mut server = Server::new_async().await;
+    let clerk = loaded_clerk(&mut server).await;
+    let mock = mock_memberships(
+        &mut server,
+        "true",
+        serde_json::json!({ "data": [] }),
+        logged_in_client(),
+    )
+    .await;
+
+    let page = clerk
+        .get_fapi_client()
+        .get_organization_memberships_page(Some(100), Some(0))
+        .await
+        .unwrap();
+
+    mock.assert_async().await;
+    assert_eq!(
+        page,
+        OrganizationMembershipsPage {
+            data: Some(vec![]),
+            total_count: None,
+        }
+    );
+}
+
+#[tokio::test]
+async fn test_memberships_page_maps_plain_array_to_data_without_total_count() {
+    let mut server = Server::new_async().await;
+    let clerk = loaded_clerk(&mut server).await;
+    let mock = mock_memberships(
+        &mut server,
+        "true",
+        serde_json::json!([membership_json()]),
+        logged_in_client(),
+    )
+    .await;
+
+    let page = clerk
+        .get_fapi_client()
+        .get_organization_memberships_page(Some(100), Some(0))
+        .await
+        .unwrap();
+
+    mock.assert_async().await;
+    let expected: ClientOrganizationMembership = serde_json::from_value(membership_json()).unwrap();
+    assert_eq!(
+        page,
+        OrganizationMembershipsPage {
+            data: Some(vec![expected]),
+            total_count: None,
+        }
+    );
+}
+
+#[tokio::test]
+async fn test_get_organization_memberships_still_returns_empty_vec_for_null_data() {
+    let mut server = Server::new_async().await;
+    let clerk = loaded_clerk(&mut server).await;
+    let mock = mock_memberships(
+        &mut server,
+        "true",
+        serde_json::json!({ "data": null, "total_count": 3 }),
+        logged_in_client(),
+    )
+    .await;
+
+    let memberships = clerk
+        .get_fapi_client()
+        .get_organization_memberships(Some(100), Some(0), Some(true))
+        .await
+        .unwrap();
+
+    mock.assert_async().await;
+    assert_eq!(memberships, Vec::<ClientOrganizationMembership>::new());
 }
