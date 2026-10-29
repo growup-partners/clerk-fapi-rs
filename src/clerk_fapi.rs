@@ -14,6 +14,33 @@ use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::Arc;
 
+/// One page of organization memberships, with the response fields kept as received.
+///
+/// A 200 response whose `data` is absent or null yields `data: None`, which a
+/// caller paging until a short page can tell apart from an empty page.
+/// The non-paginated (plain array) response yields `data: Some(..)` and
+/// `total_count: None`.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct OrganizationMembershipsPage {
+    pub data: Option<Vec<ClientOrganizationMembership>>,
+    pub total_count: Option<i64>,
+}
+
+impl From<ClientClientWrappedOrganizationMembershipsResponse> for OrganizationMembershipsPage {
+    fn from(response: ClientClientWrappedOrganizationMembershipsResponse) -> Self {
+        match response {
+            ClientClientWrappedOrganizationMembershipsResponse::ArrayVecmodelsClientOrganizationMembership(data) => Self {
+                data: Some(data),
+                total_count: None,
+            },
+            ClientClientWrappedOrganizationMembershipsResponse::ClientClientWrappedOrganizationMembershipsResponseOneOf(res) => Self {
+                data: res.data,
+                total_count: res.total_count,
+            },
+        }
+    }
+}
+
 /// The main client for interacting with Clerk's Frontend API
 #[derive(Clone)]
 pub struct ClerkFapiClient {
@@ -988,12 +1015,44 @@ impl ClerkFapiClient {
         Ok(*response.response)
     }
 
+    /// Returns the current user's organization memberships.
+    ///
+    /// A paginated response whose `data` is absent or null is returned as an
+    /// empty list. Use [`Self::get_organization_memberships_page`] when the
+    /// caller needs to tell that apart from a genuinely empty page.
     pub async fn get_organization_memberships(
         &self,
         limit: Option<i64>,
         offset: Option<i64>,
         paginated: Option<bool>,
     ) -> Result<Vec<ClientOrganizationMembership>, Error<GetOrganizationMembershipsError>> {
+        let page = self
+            .fetch_organization_memberships(limit, offset, paginated)
+            .await?;
+        Ok(page.data.unwrap_or_default())
+    }
+
+    /// Returns one page of the current user's organization memberships,
+    /// always requesting the paginated response shape.
+    ///
+    /// `data` and `total_count` are passed through as received, so a page
+    /// whose `data` is absent or null stays `None` instead of looking like
+    /// an empty page.
+    pub async fn get_organization_memberships_page(
+        &self,
+        limit: Option<i64>,
+        offset: Option<i64>,
+    ) -> Result<OrganizationMembershipsPage, Error<GetOrganizationMembershipsError>> {
+        self.fetch_organization_memberships(limit, offset, Some(true))
+            .await
+    }
+
+    async fn fetch_organization_memberships(
+        &self,
+        limit: Option<i64>,
+        offset: Option<i64>,
+        paginated: Option<bool>,
+    ) -> Result<OrganizationMembershipsPage, Error<GetOrganizationMembershipsError>> {
         let response = organizations_memberships_api::get_organization_memberships(
             &self.clerk_config(),
             limit,
@@ -1002,13 +1061,7 @@ impl ClerkFapiClient {
         )
         .await?;
         self.handle_client_update(*response.client.clone());
-        let res = match *response.response {
-            ClientClientWrappedOrganizationMembershipsResponse::ArrayVecmodelsClientOrganizationMembership(res) => res,
-            ClientClientWrappedOrganizationMembershipsResponse::ClientClientWrappedOrganizationMembershipsResponseOneOf(res) => {
-                res.data.unwrap_or(Vec::new())
-            }
-        };
-        Ok(res)
+        Ok((*response.response).into())
     }
 
     pub async fn get_organization_suggestions(
